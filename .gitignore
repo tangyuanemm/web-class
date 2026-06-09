@@ -9,3 +9,7 @@ target/
 *.jar
 *.war
 .env.local
+# 本地数据文件，不提交
+data/
+uploads/
+*.db

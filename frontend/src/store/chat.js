@@ -48,7 +48,7 @@ export const useChatStore = defineStore('chat', () => {
           contentType: msg.contentType || 'text',
           timestamp: msg.timestamp || Date.now()
         })
-        saveMessage(contactId, messages.value[contactId])
+        saveMessage(userId, contactId, messages.value[contactId])
       }
     })
 
@@ -72,7 +72,7 @@ export const useChatStore = defineStore('chat', () => {
 
     addMessage(activeContact.value.id, msg)
     socket.send(activeContact.value.id, content, contentType)
-    saveMessage(activeContact.value.id, messages.value[activeContact.value.id])
+    saveMessage(_currentUserId, activeContact.value.id, messages.value[activeContact.value.id])
   }
 
   // 添加消息
@@ -85,7 +85,7 @@ export const useChatStore = defineStore('chat', () => {
 
   // 加载本地历史消息
   function loadLocalHistory(contactId) {
-    const history = loadHistory(contactId)
+    const history = loadHistory(_currentUserId, contactId)
     if (history.length > 0) {
       messages.value[contactId] = history
     }
@@ -123,7 +123,7 @@ export const useChatStore = defineStore('chat', () => {
         ]
         merged.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0))
         messages.value[contact.id] = merged
-        saveMessage(contact.id, merged)
+        saveMessage(_currentUserId, contact.id, merged)
       } catch (e) {
         console.warn('加载历史消息失败:', e)
       }

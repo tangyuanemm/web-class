@@ -19,9 +19,9 @@ export default class ChatSocket {
   }
 
   _connect() {
-    // WebSocket URL — 联调时改成队友的后端地址
-    const host = import.meta.env.VITE_WS_URL || 'ws://localhost:8080'
-    const url = `${host}/chat?userId=${this.userId}&token=${this.token}`
+    // 自动适配访问地址：本地用 localhost，队友通过你的 IP 访问也能自动连上
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    const url = `${wsProtocol}//${window.location.host}/chat?userId=${this.userId}&token=${this.token}`
 
     console.log('[WS] 正在连接:', url)
     this.ws = new WebSocket(url)

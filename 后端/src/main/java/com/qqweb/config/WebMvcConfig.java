@@ -20,6 +20,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private com.qqweb.service.FileService fileService;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new HandlerInterceptor() {
@@ -71,8 +74,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // 映射上传文件目录为可访问的 URL
+        // 映射上传文件目录为可访问的 URL（使用绝对路径）
+        // Spring 会把 /uploads/xxx 映射到 resourceLocation/xxx
+        // uploadPath 是 .../uploads/images，所以要用它的父目录 .../uploads
+        String uploadPath = fileService.getAbsoluteUploadPath();
+        String parentPath = java.nio.file.Paths.get(uploadPath).getParent().toString();
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:uploads/");
+                .addResourceLocations("file:" + parentPath + "/");
     }
 }

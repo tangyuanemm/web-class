@@ -22,8 +22,32 @@ public class FileService {
     @Value("${file.upload.url-prefix}")
     private String urlPrefix;
 
+    private Path absoluteUploadPath;
+
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
     private static final String[] ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"};
+
+    /**
+     * 初始化：解析上传路径为绝对路径并创建目录
+     */
+    @jakarta.annotation.PostConstruct
+    public void init() throws IOException {
+        Path p = Paths.get(uploadPath);
+        if (!p.isAbsolute()) {
+            // 相对于 JVM 工作目录解析
+            p = Paths.get(System.getProperty("user.dir"), uploadPath).toAbsolutePath();
+        }
+        this.absoluteUploadPath = p.normalize();
+        Files.createDirectories(this.absoluteUploadPath);
+        System.out.println("[FILE] 上传目录: " + this.absoluteUploadPath);
+    }
+
+    /**
+     * 获取绝对上传路径（供 WebMvcConfig 使用）
+     */
+    public String getAbsoluteUploadPath() {
+        return this.absoluteUploadPath.toString();
+    }
 
     /**
      * 保存上传的图片
@@ -62,15 +86,16 @@ public class FileService {
         String newFileName = datePrefix + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
 
         // 按日期创建子目录
-        Path dateDir = Paths.get(uploadPath, new SimpleDateFormat("yyyyMM").format(new Date()));
+        String dateDirName = new SimpleDateFormat("yyyyMM").format(new Date());
+        Path dateDir = absoluteUploadPath.resolve(dateDirName);
         Files.createDirectories(dateDir);
 
         // 保存文件
         Path targetPath = dateDir.resolve(newFileName);
         file.transferTo(targetPath.toFile());
+        System.out.println("[FILE] 图片已保存: " + targetPath);
 
         // 返回可访问的 URL
-        String datePath = new SimpleDateFormat("yyyyMM").format(new Date());
-        return urlPrefix + "/" + datePath + "/" + newFileName;
+        return urlPrefix + "/" + dateDirName + "/" + newFileName;
     }
 }

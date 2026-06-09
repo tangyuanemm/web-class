@@ -12,6 +12,7 @@ export default defineConfig({
   },
 
   server: {
+    host: '0.0.0.0',  // 允许局域网其他设备访问
     port: 5173,
     // API 代理到后端
     proxy: {
@@ -22,6 +23,10 @@ export default defineConfig({
       '/chat': {
         target: 'ws://localhost:8080',
         ws: true
+      },
+      '/uploads': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
       }
     }
   }
