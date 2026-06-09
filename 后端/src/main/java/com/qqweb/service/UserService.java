@@ -19,6 +19,9 @@ public class UserService {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private FriendService friendService;
+
     /**
      * 注册
      */
@@ -69,25 +72,11 @@ public class UserService {
     }
 
     /**
-     * 获取联系人列表（所有启用用户，排除自己）
+     * 获取联系人列表（只返回已添加的好友）
      */
     public List<Map<String, Object>> getContacts(String currentUserId) {
         Long myId = Long.parseLong(currentUserId);
-        List<User> users = userRepository.findByStatus(User.Status.ENABLED);
-
-        List<Map<String, Object>> contacts = new ArrayList<>();
-        for (User u : users) {
-            if (u.getId().equals(myId)) continue; // 排除自己
-
-            Map<String, Object> contact = new LinkedHashMap<>();
-            contact.put("id", String.valueOf(u.getId()));
-            contact.put("username", u.getUsername());
-            contact.put("nickname", u.getNickname());
-            contact.put("avatar", u.getAvatar() != null ? u.getAvatar() : "");
-            contact.put("online", u.getOnline());
-            contacts.add(contact);
-        }
-        return contacts;
+        return friendService.getFriendList(myId);
     }
 
     /**

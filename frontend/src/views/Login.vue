@@ -38,6 +38,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import api from '@/utils/api'
+import { mockLogin, mockRegister } from '@/utils/mock-auth'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -64,16 +65,15 @@ async function handleSubmit() {
   loading.value = true
   error.value = ''
   try {
-    // ===== 临时 Mock 模式：直接登录（联调时替换为真实 API）=====
+    // ===== Mock 模式：localStorage 模拟真实注册/登录 =====
     if (import.meta.env.VITE_USE_MOCK !== 'false') {
-      // 模拟登录成功
-      const mockUser = {
-        id: 'user_' + Date.now(),
-        username: form.username,
-        nickname: form.nickname || form.username
+      if (isRegister.value) {
+        const result = mockRegister(form.username, form.password, form.nickname)
+        userStore.login(result.user, result.token)
+      } else {
+        const result = mockLogin(form.username, form.password)
+        userStore.login(result.user, result.token)
       }
-      const mockToken = 'mock_token_' + Date.now()
-      userStore.login(mockUser, mockToken)
       router.push('/chat')
       return
     }

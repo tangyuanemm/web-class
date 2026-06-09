@@ -64,5 +64,34 @@ export default {
     const json = await res.json()
     if (json.code !== 200) throw new Error(json.msg || '上传失败')
     return json.data.url
-  }
+  },
+
+  // ─── 好友接口 ───────────────────
+  getFriendList: () =>
+    request('GET', '/friend/list'),
+
+  getFriendRequests: () =>
+    request('GET', '/friend/requests'),
+
+  sendFriendRequest: (toUserId) =>
+    request('POST', '/friend/request', { toUserId }),
+
+  acceptFriendRequest: (requestId) =>
+    request('POST', `/friend/accept/${requestId}`),
+
+  rejectFriendRequest: (requestId) =>
+    request('POST', `/friend/reject/${requestId}`),
+
+  deleteFriend: (friendUserId) =>
+    request('DELETE', `/friend/${friendUserId}`),
+
+  // ─── 管理员接口 ───────────────────
+  getAdminUsers: () =>
+    request('GET', '/admin/users'),
+
+  deleteAdminUser: (username) =>
+    request('DELETE', `/admin/users/${username}`),
+
+  resetAdminPassword: (username, newPassword) =>
+    request('PUT', `/admin/users/${username}/password`, { password: newPassword })
 }

@@ -1,5 +1,5 @@
 <template>
-  <div :class="['bubble', message.direction]">
+  <div :class="['bubble', direction]">
     <!-- 文本消息 -->
     <div v-if="message.contentType === 'text'" class="bubble-text">
       {{ message.content }}
@@ -24,7 +24,15 @@
 
 <script setup>
 const props = defineProps({
-  message: { type: Object, required: true }
+  message: { type: Object, required: true },
+  currentUserId: { type: String, default: '' }
+})
+
+// 兜底：如果数据本身没有 direction，用 from 字段判断
+import { computed } from 'vue'
+const direction = computed(() => {
+  if (props.message.direction) return props.message.direction
+  return props.message.from === props.currentUserId ? 'out' : 'in'
 })
 
 function formatTime(ts) {

@@ -19,7 +19,7 @@
     <description>仿QQ Web即时聊天系统 - 后端</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>17</java.version>
     </properties>
 
     <dependencies>

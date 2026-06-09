@@ -16,6 +16,12 @@ const routes = [
     name: 'ChatMain',
     component: () => import('@/views/ChatMain.vue'),
     meta: { title: '聊天', requiresAuth: true }
+  },
+  {
+    path: '/admin',
+    name: 'AdminPanel',
+    component: () => import('@/views/AdminPanel.vue'),
+    meta: { title: '管理面板', requiresAuth: true }
   }
 ]
 

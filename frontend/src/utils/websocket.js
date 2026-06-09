@@ -30,6 +30,22 @@ export default class ChatSocket {
       console.log('[WS] 连接成功')
       this.retryCount = 0
       this._startHeartbeat()
+      if (this._statusFn) this._statusFn(true)
+
+      // 发送重连前暂存的消息
+      if (this._pendingMsg) {
+        const p = this._pendingMsg
+        this._pendingMsg = null
+        if (this.ws.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify({
+            type: 'chat',
+            to: p.to,
+            content: p.content,
+            contentType: p.contentType
+          }))
+          console.log('[WS] 暂存消息已发送')
+        }
+      }
     }
 
     this.ws.onmessage = (event) => {
@@ -44,11 +60,13 @@ export default class ChatSocket {
     this.ws.onclose = (e) => {
       console.log('[WS] 连接关闭, 原因:', e.code, e.reason)
       this._stopHeartbeat()
+      if (this._statusFn) this._statusFn(false)
       this._retry()
     }
 
     this.ws.onerror = (e) => {
       console.error('[WS] 连接错误:', e)
+      if (this._statusFn) this._statusFn(false)
     }
   }
 
@@ -56,6 +74,11 @@ export default class ChatSocket {
   onMessage(fn) { this.handlers['chat'] = fn }
   onSystem(fn) { this.handlers['system'] = fn }
   onAck(fn) { this.handlers['ack'] = fn }
+
+  // 连接状态回调
+  onStatusChange(fn) { this._statusFn = fn }
+
+  isOpen() { return this.ws && this.ws.readyState === WebSocket.OPEN }
 
   _dispatch(msg) {
     const handler = this.handlers[msg.type]
@@ -66,18 +89,28 @@ export default class ChatSocket {
     }
   }
 
-  // 发送消息
+  // 发送消息（连接断开时自动重连）
   send(to, content, contentType = 'text') {
-    if (this.ws.readyState === WebSocket.OPEN) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify({
         type: 'chat',
         to,
         content,
         contentType
       }))
-    } else {
-      console.warn('[WS] 连接未就绪，消息发送失败')
+      return
     }
+
+    // 连接断开：强制重连，暂存消息待连上后发送
+    console.warn('[WS] 连接未就绪，正在重连...')
+    this._pendingMsg = { to, content, contentType }
+    this.retryCount = 0
+    this._stopHeartbeat()
+    if (this.ws) {
+      try { this.ws.close() } catch (_) {}
+      this.ws = null
+    }
+    this._connect()
   }
 
   // 心跳保活

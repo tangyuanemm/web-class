@@ -7,7 +7,7 @@
         :key="msg.id"
         :class="['message-row', msg.direction]"
       >
-        <MessageBubble :message="msg" />
+        <MessageBubble :message="msg" :current-user-id="currentUserId" />
       </div>
       <div v-if="messages.length === 0" class="empty-hint">
         暂无消息，发送一条消息开始聊天吧～
